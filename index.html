@@ -92,11 +92,34 @@
         transform: translateX(-50%) translateY(0);
         opacity: 1;
       }
+      .by {
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px 4px;
+        font-weight: 500;
+        background-color: #131313;
+      }
+      .by a {
+        text-decoration: none;
+        color: unset;
+      }
+      .by a:hover {
+        text-decoration: underline;
+        color: unset;
+      }
     </style>
   </head>
   <body>
     <div id="sections"></div>
     <div class="toast" id="toast">Скопировано!</div>
+    <div class="by">
+      by&nbsp;<a href="https://dvegasa.ru">DVegasa</a>&nbsp;with ❤️
+    </div>
 
     <script>
       const BASE_URL = "https://dvegasa2.github.io";
