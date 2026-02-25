@@ -3,19 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CTO — Стикеры</title>
     <style>
       * {
         box-sizing: border-box;
       }
       body {
         font-family: system-ui, -apple-system, sans-serif;
-        max-width: 900px;
-        margin: 0 auto;
+        margin: 0;
         padding: 2rem;
         background: #1a1a1a;
         color: #e0e0e0;
         min-height: 100vh;
+        width: 100%;
       }
       h1 {
         text-align: center;
@@ -23,11 +22,16 @@
         font-weight: 700;
         letter-spacing: 0.05em;
       }
+      #sections {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+      }
       .section {
-        margin-bottom: 2.5rem;
+        min-width: 0;
       }
       .section h2 {
-        font-size: 1.25rem;
+        font-size: 1.5rem;
         font-weight: 600;
         margin-bottom: 0.75rem;
         letter-spacing: 0.03em;
@@ -36,7 +40,8 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, 100px);
         gap: 8px;
-        justify-content: center;
+        width: 100%;
+        justify-content: start;
       }
       .cell {
         width: 100px;
@@ -84,7 +89,6 @@
     </style>
   </head>
   <body>
-    <h1>Стикеры</h1>
     <div id="sections"></div>
     <div class="toast" id="toast">Скопировано!</div>
 
