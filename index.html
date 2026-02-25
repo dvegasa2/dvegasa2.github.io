@@ -23,9 +23,15 @@
         letter-spacing: 0.05em;
       }
       #sections {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+        display: flex;
         gap: 2rem;
+      }
+      .column {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
       }
       .section {
         min-width: 0;
@@ -33,7 +39,7 @@
       .section h2 {
         font-size: 1.5rem;
         font-weight: 600;
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.5rem;
         letter-spacing: 0.03em;
       }
       .gallery {
@@ -95,15 +101,23 @@
     <script>
       const BASE_URL = "https://dvegasa2.github.io";
 
-      // Папка со стикерами → название раздела на странице; count — количество файлов (1.png, 2.png, …)
+      // folder — папка со стикерами, title — название раздела, count — количество файлов (1.ext, 2.ext, …), ext — расширение (по умолчанию "png")
       const SECTIONS = [
-        { folder: "cto", title: "CTO in rage", count: 43 },
-        { folder: "ebanyfrontend", title: "ebanyfrontend", count: 22 },
+        { folder: "cto", title: "CTO in rage", count: 43, ext: "png" },
+        {
+          folder: "ebanyfrontend",
+          title: "ebanyfrontend",
+          count: 22,
+          ext: "png",
+        },
         {
           folder: "conversationlist",
           title: "Я интересный собеседник",
           count: 14,
+          ext: "png",
         },
+        { folder: "corrections", title: "Правки", count: 33, ext: "png" },
+        // Пример с другим форматом: { folder: "stickers", title: "Стикеры", count: 5, ext: "jpg" },
       ];
 
       const container = document.getElementById("sections");
@@ -132,29 +146,38 @@
         }
       }
 
-      function buildGallery(folder, count) {
+      function buildGallery(folder, count, ext = "png") {
         const gallery = document.createElement("div");
         gallery.className = "gallery";
         const baseUrl = `${BASE_URL}/${folder}`;
         for (let i = 1; i <= count; i++) {
-          const src = `${baseUrl}/${i}.png`;
+          const filename = `${i}.${ext}`;
+          const src = `${baseUrl}/${filename}`;
           const cell = document.createElement("div");
           cell.className = "cell";
           cell.title = "Нажмите, чтобы скопировать URL";
-          cell.innerHTML = `<img src="${folder}/${i}.png" alt="Стикер ${i}" loading="lazy">`;
+          cell.innerHTML = `<img src="${folder}/${filename}" alt="Стикер ${i}" loading="lazy">`;
           cell.addEventListener("click", () => copyUrl(src));
           gallery.appendChild(cell);
         }
         return gallery;
       }
 
-      SECTIONS.forEach(({ folder, title, count }) => {
+      const column1 = document.createElement("div");
+      column1.className = "column";
+      const column2 = document.createElement("div");
+      column2.className = "column";
+
+      SECTIONS.forEach(({ folder, title, count, ext = "png" }, index) => {
         const section = document.createElement("section");
         section.className = "section";
         section.innerHTML = `<h2>${title}</h2>`;
-        section.appendChild(buildGallery(folder, count));
-        container.appendChild(section);
+        section.appendChild(buildGallery(folder, count, ext));
+        (index % 2 === 0 ? column1 : column2).appendChild(section);
       });
+
+      container.appendChild(column1);
+      container.appendChild(column2);
     </script>
   </body>
 </html>
