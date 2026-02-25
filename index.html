@@ -1,1 +1,123 @@
-Hello, world!
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CTO — Стикеры</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem;
+        background: #1a1a1a;
+        color: #e0e0e0;
+        min-height: 100vh;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 1.5rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+      }
+      .gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, 100px);
+        gap: 8px;
+        justify-content: center;
+      }
+      .cell {
+        width: 100px;
+        height: 100px;
+        padding: 4px;
+        background: #2a2a2a;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background 0.15s, transform 0.1s;
+      }
+      .cell:hover {
+        background: #3a3a3a;
+        transform: scale(1.75);
+      }
+      .cell:active {
+        transform: scale(0.98);
+      }
+      .cell img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        pointer-events: none;
+      }
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%) translateY(80px);
+        background: #333;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        opacity: 0;
+        transition: transform 0.25s, opacity 0.25s;
+        z-index: 1000;
+      }
+      .toast.show {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>CTO</h1>
+    <div class="gallery" id="gallery"></div>
+    <div class="toast" id="toast">Скопировано!</div>
+
+    <script>
+      const BASE = "https://dvegasa2.github.io/cto";
+      const COUNT = 43;
+
+      const gallery = document.getElementById("gallery");
+      const toast = document.getElementById("toast");
+
+      function showToast() {
+        toast.classList.add("show");
+        clearTimeout(showToast.t);
+        showToast.t = setTimeout(() => toast.classList.remove("show"), 1500);
+      }
+
+      function copyUrl(url) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(showToast).catch(fallback);
+        } else {
+          fallback();
+        }
+        function fallback() {
+          const input = document.createElement("input");
+          input.value = url;
+          document.body.appendChild(input);
+          input.select();
+          document.execCommand("copy");
+          document.body.removeChild(input);
+          showToast();
+        }
+      }
+
+      for (let i = 1; i <= COUNT; i++) {
+        const src = `${BASE}/${i}.png`;
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.title = "Нажмите, чтобы скопировать URL";
+        cell.innerHTML = `<img src="cto/${i}.png" alt="Стикер ${i}" loading="lazy">`;
+        cell.addEventListener("click", () => copyUrl(src));
+        gallery.appendChild(cell);
+      }
+    </script>
+  </body>
+</html>
