@@ -61,6 +61,7 @@
         justify-content: start;
       }
       .cell {
+        position: relative;
         width: 100px;
         height: 100px;
         padding: 4px;
@@ -71,12 +72,15 @@
         justify-content: center;
         cursor: pointer;
         transition: background 0.15s, transform 0.1s;
+        z-index: 1;
       }
       .cell:hover {
-        background: #3a3a3a;
+        background: #252525;
         transform: scale(1.75);
+        z-index: 5;
       }
       .cell:active {
+        z-index: 5;
         transform: scale(0.98);
       }
       .cell img {
@@ -84,6 +88,52 @@
         max-height: 100%;
         object-fit: contain;
         pointer-events: none;
+      }
+      .cell-star {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffc107;
+        pointer-events: none;
+      }
+      .cell-star:not(.show) {
+        display: none;
+      }
+      .cell-star svg {
+        width: 16px;
+        height: 16px;
+      }
+      #favorites-section {
+        width: 100%;
+        margin-bottom: 2rem;
+        min-width: 0;
+      }
+      #favorites-section h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        letter-spacing: 0.03em;
+      }
+      #favorites-gallery {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-content: flex-start;
+      }
+      #favorites-gallery .cell {
+        flex-shrink: 0;
+      }
+      #favorites-empty {
+        color: #888;
+        font-size: 0.95rem;
+        margin: 0;
+        height: 100px;
+        padding-top: 8px;
       }
       .toast {
         position: fixed;
@@ -133,6 +183,13 @@
     </style>
   </head>
   <body>
+    <section id="favorites-section" class="section noselect">
+      <h2>Избранное</h2>
+      <p id="favorites-empty" class="noselect">
+        Вы можете добавить стикер в избранное, нажав по нему правой кнопкой мыши
+      </p>
+      <div id="favorites-gallery" class="gallery"></div>
+    </section>
     <div id="sections" class="noselect"></div>
     <div class="toast noselect" id="toast">Скопировано!</div>
     <div class="by noselect">
@@ -141,6 +198,87 @@
 
     <script>
       const BASE_URL = "https://s.dvegasa.ru";
+      const FAVORITES_KEY = "sticker-favorites";
+
+      function getFavorites() {
+        try {
+          const raw = localStorage.getItem(FAVORITES_KEY);
+          return raw ? JSON.parse(raw) : [];
+        } catch {
+          return [];
+        }
+      }
+      function setFavorites(arr) {
+        localStorage.setItem(FAVORITES_KEY, JSON.stringify(arr));
+      }
+      function isFavorited(key) {
+        return getFavorites().includes(key);
+      }
+      function toggleFavorite(key) {
+        const fav = getFavorites();
+        const i = fav.indexOf(key);
+        if (i >= 0) fav.splice(i, 1);
+        else fav.push(key);
+        setFavorites(fav);
+      }
+
+      const starSvg =
+        '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
+
+      function createStickerCell(folder, filename, ext, inFavoritesSection) {
+        const key = `${folder}/${filename}`;
+        const src = `${BASE_URL}/${folder}/${filename}`;
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.dataset.stickerKey = key;
+        cell.title = "Нажмите — скопировать URL. Правый клик — в избранное.";
+        cell.innerHTML = `<img src="${folder}/${filename}" alt="Стикер" loading="lazy">`;
+
+        const star = document.createElement("div");
+        star.className = "cell-star";
+        star.innerHTML = starSvg;
+        if (isFavorited(key) || inFavoritesSection) star.classList.add("show");
+        cell.appendChild(star);
+
+        cell.addEventListener("click", (e) => {
+          if (e.button !== 0) return;
+          copyUrl(src);
+        });
+        cell.addEventListener("contextmenu", (e) => {
+          e.preventDefault();
+          toggleFavorite(key);
+          star.classList.toggle("show", isFavorited(key));
+          if (inFavoritesSection) cell.remove();
+          renderFavorites();
+        });
+
+        return cell;
+      }
+
+      function renderFavorites() {
+        const gallery = document.getElementById("favorites-gallery");
+        const emptyEl = document.getElementById("favorites-empty");
+        if (!gallery || !emptyEl) return;
+        gallery.innerHTML = "";
+        getFavorites().forEach((key) => {
+          const [folder, filename] = key.split("/");
+          if (!folder || !filename) return;
+          gallery.appendChild(createStickerCell(folder, filename, null, true));
+        });
+        emptyEl.style.display =
+          gallery.children.length === 0 ? "block" : "none";
+
+        document
+          .querySelectorAll("#sections .cell[data-sticker-key]")
+          .forEach((cell) => {
+            const star = cell.querySelector(".cell-star");
+            if (star)
+              star.classList.toggle(
+                "show",
+                isFavorited(cell.dataset.stickerKey)
+              );
+          });
+      }
 
       // folder — папка со стикерами, title — название раздела, count — количество файлов (1.ext, 2.ext, …), ext — расширение (по умолчанию "png")
       const SECTIONS = [
@@ -191,16 +329,9 @@
       function buildGallery(folder, count, ext = "png") {
         const gallery = document.createElement("div");
         gallery.className = "gallery";
-        const baseUrl = `${BASE_URL}/${folder}`;
         for (let i = 1; i <= count; i++) {
           const filename = `${i}.${ext}`;
-          const src = `${baseUrl}/${filename}`;
-          const cell = document.createElement("div");
-          cell.className = "cell";
-          cell.title = "Нажмите, чтобы скопировать URL";
-          cell.innerHTML = `<img src="${folder}/${filename}" alt="Стикер ${i}" loading="lazy">`;
-          cell.addEventListener("click", () => copyUrl(src));
-          gallery.appendChild(cell);
+          gallery.appendChild(createStickerCell(folder, filename, ext, false));
         }
         return gallery;
       }
@@ -220,6 +351,8 @@
 
       container.appendChild(column1);
       container.appendChild(column2);
+
+      renderFavorites();
     </script>
   </body>
 </html>
