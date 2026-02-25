@@ -19,9 +19,18 @@
       }
       h1 {
         text-align: center;
-        margin-bottom: 1.5rem;
+        margin-bottom: 2rem;
         font-weight: 700;
         letter-spacing: 0.05em;
+      }
+      .section {
+        margin-bottom: 2.5rem;
+      }
+      .section h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        letter-spacing: 0.03em;
       }
       .gallery {
         display: grid;
@@ -75,15 +84,20 @@
     </style>
   </head>
   <body>
-    <h1>CTO</h1>
-    <div class="gallery" id="gallery"></div>
+    <h1>Стикеры</h1>
+    <div id="sections"></div>
     <div class="toast" id="toast">Скопировано!</div>
 
     <script>
-      const BASE = "https://dvegasa2.github.io/cto";
-      const COUNT = 43;
+      const BASE_URL = "https://dvegasa2.github.io";
 
-      const gallery = document.getElementById("gallery");
+      // Папка со стикерами → название раздела на странице; count — количество файлов (1.png, 2.png, …)
+      const SECTIONS = [
+        { folder: "cto", title: "CTO in rage", count: 43 },
+        { folder: "ebanyfrontend", title: "ebanyfrontend", count: 22 },
+      ];
+
+      const container = document.getElementById("sections");
       const toast = document.getElementById("toast");
 
       function showToast() {
@@ -109,15 +123,29 @@
         }
       }
 
-      for (let i = 1; i <= COUNT; i++) {
-        const src = `${BASE}/${i}.png`;
-        const cell = document.createElement("div");
-        cell.className = "cell";
-        cell.title = "Нажмите, чтобы скопировать URL";
-        cell.innerHTML = `<img src="cto/${i}.png" alt="Стикер ${i}" loading="lazy">`;
-        cell.addEventListener("click", () => copyUrl(src));
-        gallery.appendChild(cell);
+      function buildGallery(folder, count) {
+        const gallery = document.createElement("div");
+        gallery.className = "gallery";
+        const baseUrl = `${BASE_URL}/${folder}`;
+        for (let i = 1; i <= count; i++) {
+          const src = `${baseUrl}/${i}.png`;
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          cell.title = "Нажмите, чтобы скопировать URL";
+          cell.innerHTML = `<img src="${folder}/${i}.png" alt="Стикер ${i}" loading="lazy">`;
+          cell.addEventListener("click", () => copyUrl(src));
+          gallery.appendChild(cell);
+        }
+        return gallery;
       }
+
+      SECTIONS.forEach(({ folder, title, count }) => {
+        const section = document.createElement("section");
+        section.className = "section";
+        section.innerHTML = `<h2>${title}</h2>`;
+        section.appendChild(buildGallery(folder, count));
+        container.appendChild(section);
+      });
     </script>
   </body>
 </html>
